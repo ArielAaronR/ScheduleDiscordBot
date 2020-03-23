@@ -23,9 +23,6 @@ client.on("ready", () => {
 });
 
 client.on("message", msg => {
-  utils.allUsers.then(u => {
-    u, console.log("This is the utils " + u);
-  });
   /*
   Splicing the commands with the prefix
    */

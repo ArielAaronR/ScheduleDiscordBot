@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const utils = require("../utils/utils");
 
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
@@ -37,11 +38,12 @@ module.exports = {
           u.save()
             .then(res =>
               console.log(
-                `Recieved update to db here is the result:  ${res.username} has set status to ${res.status}`
+                `Recieved update to db here is the result:  ${res.username} has set status to ${res.punch}`
               )
             )
             .catch(error => console.log(error));
           message.channel.send("You have clocked in bro! ");
+
           const ClockIn = require("../models/clockIn.js");
 
           /**
@@ -57,13 +59,37 @@ module.exports = {
             .save()
             .then(res => console.log(` users has clocked in ${res}`))
             .catch(error => console.log(error));
-          const utils = require("../utils/utils");
 
-          utils.allUser.then(users => console.log(users));
+          // utils.allUsers
+          //   .then(users => {
+          //     for (let i = 0; i < users.length; i++) {
+          //       if (users[i].discordID === u.discordID) {
+          //         console.log(users[i].status);
+          //         if (!users[i].status) {
+          //           setInterval(() => {
+          //             message.channel.send(
+          //               `You haven't updated your status since ${losAngelesDate}`
+          //             );
+          //           }, 5000);
+          //         }
+          //       }
+          //     }
+          //   })
+          //   .catch(err => {
+          //     console.log(err);
+          //   });
         } else {
           message.channel.send(
             `Bro youre clocked in already get some work done`
           );
+        }
+
+        if (!u.status) {
+          setInterval(() => {
+            message.channel.send(
+              `You haven't updated your status since ${losAngelesDate}`
+            );
+          }, 5000);
         }
       }
     });

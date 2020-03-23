@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Status = require("../models/status");
 const User = require("../models/user");
-
+const utils = require("../utils/utils");
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -67,7 +67,6 @@ module.exports = {
           message.client.channels
             .fetch("689533676723372093")
             .then(channel => {
-              console.log(channel);
               channel.send(
                 ` ${message.author} updated their status here it is \n \`\`\` ${status.content}\`\`\``
               );
@@ -76,6 +75,9 @@ module.exports = {
           console.log(`${u.username} has made the status of ${status}`);
         }
       }
+      console.log(
+        `This is the status from the status command file ${u.status}`
+      );
     });
   }
 };
