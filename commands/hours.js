@@ -27,34 +27,40 @@ module.exports = {
       })
       .catch(err => console.log(err));
 
-    clockin.then(inArray => {
-      clockout.then(outArray => {
-        let inOutArray = [];
+    clockin
+      .then(inArray => {
+        clockout
+          .then(outArray => {
+            let inOutArray = [];
 
-        inArray.forEach((i, indx) => {
-          inOutArray.push(i);
-          inOutArray.push(outArray[indx]);
-        });
+            inArray.forEach((i, indx) => {
+              inOutArray.push(i);
+              inOutArray.push(outArray[indx]);
+            });
 
-        let sortedArr = inOutArray.sort((a, b) => {
-          let keyA = new Date(a.createdAt),
-            keyB = new Date(b.createdAt);
-          if (keyA < keyB) return -1;
-          if (keyA > keyB) return 1;
-          return 0;
-        });
+            let sortedArr = inOutArray.sort((a, b) => {
+              let keyA = new Date(a.createdAt),
+                keyB = new Date(b.createdAt);
+              if (keyA < keyB) return -1;
+              if (keyA > keyB) return 1;
+              return 0;
+            });
 
-        let scheduleArr = [];
-        for (let i = 0; i < sortedArr.length; i++) {
-          scheduleArr.push(sortedArr[i].punch);
-        }
-        console.log(scheduleArr);
-        if (!scheduleArr.length) {
-          message.channel.send(`You do not have and clock in/out logs`);
-        } else {
-          message.channel.send(scheduleArr);
-        }
-      });
-    });
+            let scheduleArr = [];
+            for (let i = 0; i < sortedArr.length; i++) {
+              scheduleArr.push(sortedArr[i].punch);
+            }
+            let scheduleArrStr = scheduleArr.join(" ")
+            console.log(scheduleArrStr);
+
+            if (!scheduleArr.length) {
+              message.channel.send(`You do not have and clock in/out logs`);
+            } else {
+              message.channel.send(`These are your hours\n ${scheduleArrStr} `);
+            }
+          })
+          .catch(err => console.log(err));
+      })
+      .catch(err => console.log(err));
   }
 };

@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
-const utils = require("../utils/utils");
-
+const Status = require("../models/status");
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -15,15 +14,19 @@ module.exports = {
      * Convert incoming message with moment.js
      * from any timezone to PST/PDT
      */
-    var moment = require("moment-timezone");
+    let moment = require("moment-timezone");
 
-    var date = message.createdAt;
+    let date = message.createdAt;
 
-    var losAngelesDate = moment(date)
+    let losAngelesDate = moment(date)
       .tz("America/Los_Angeles")
       .format("MM-DD-YYYY hh:mm a z");
 
     const User = require("../models/user.js");
+    /**
+     * Find the User and Create the clockin object
+     * and save to the db
+     */
 
     User.findOne({ discordID: message.author.id }, (err, u) => {
       if (err) console.log(err);
@@ -42,7 +45,6 @@ module.exports = {
               )
             )
             .catch(error => console.log(error));
-          message.channel.send("You have clocked in bro! ");
 
           const ClockIn = require("../models/clockIn.js");
 
@@ -52,7 +54,7 @@ module.exports = {
           const clockIn = new ClockIn({
             discordID: message.author.id,
             username: message.author.username,
-            punch: `In : ${losAngelesDate}`
+            punch: `In : ${losAngelesDate}\n`
           });
 
           clockIn
@@ -60,38 +62,61 @@ module.exports = {
             .then(res => console.log(` users has clocked in ${res}`))
             .catch(error => console.log(error));
 
-          // utils.allUsers
-          //   .then(users => {
-          //     for (let i = 0; i < users.length; i++) {
-          //       if (users[i].discordID === u.discordID) {
-          //         console.log(users[i].status);
-          //         if (!users[i].status) {
-          //           setInterval(() => {
-          //             message.channel.send(
-          //               `You haven't updated your status since ${losAngelesDate}`
-          //             );
-          //           }, 5000);
-          //         }
-          //       }
-          //     }
-          //   })
-          //   .catch(err => {
-          //     console.log(err);
-          //   });
+          Status.findOne({ discordID: message.author.id })
+            .sort({ createdAt: -1 })
+            .then(status => {
+              
+              message.channel.send(`${status.createdAt} `);
+            })
+            .catch(err => console.log(err));
         } else {
           message.channel.send(
             `Bro youre clocked in already get some work done`
           );
         }
-
-        if (!u.status) {
-          setInterval(() => {
-            message.channel.send(
-              `You haven't updated your status since ${losAngelesDate}`
-            );
-          }, 5000);
-        }
       }
     });
+    /**
+     * Create an Await Message function
+     * wih a timer so that it will
+     * reminder the user to message until
+     * they make a status
+     */
+
+    // const filter = message => message.content;
+    // const collector = message.channel.createMessageCollector(
+    //   filter,
+    //   m => m.author.id === message.author.id
+    // );
+    // /**
+    //  * Collects incoming message from the User
+    //  */
+    // collector.on("collect", message => {
+    //   message.channel.send(message.content);
+    // });
+    // collector.on("end", collected => {
+    //   message.channel.send(`Status has been collected  `);
+    //   console.log(`The collected ${collected.content}`);
+    // });
+    // const filter = m => m.content && m.author.id === message.author.id;
+    // const collector = message.channel.createMessageCollector(filter, {
+    //   time: 15000
+    // });
+
+    // collector.on("collect", m => {
+    //   if (m.content.includes("$status")) {
+    //     message.channel.send(`Collected `);
+    //   }
+    // });
+
+    // collector.on("end", collected => {
+    //   if (collected.size === 0) {
+    //     message.channel.send(
+    //       "Bro you need to update your status after clocking in "
+    //     );
+    //   } else {
+    //     message.channel.send(`Collected ${collected.size} items`);
+    //   }
+    // });
   }
 };

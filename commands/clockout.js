@@ -46,7 +46,7 @@ module.exports = {
           const clockOut = new ClockOut({
             discordID: message.author.id,
             username: message.author.username,
-            punch: `Out : ${losAngelesDate}`
+            punch: `Out : ${losAngelesDate}\n`
           });
 
           clockOut
@@ -61,11 +61,6 @@ module.exports = {
           message.channel.send(`Bro you are clocked out already`);
         }
       }
-      u.status = !u.status;
-      u.status
-        .save()
-        .then(u => console.log(`Status : ${u.status} has been saved to the db`))
-        .catch(err => console.log(err));
     });
   }
 };
