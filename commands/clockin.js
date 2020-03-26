@@ -5,6 +5,39 @@ mongoose.connect("mongodb://localhost/TestPunchs", {
   useUnifiedTopology: true
 });
 
+function sendLatestStatuses(channel) {
+  Status.find()
+    .then(sList => {
+      let brandNewDopeArray = sList.reverse();
+      let newListArr = [];
+      let alreadyAddedIDs = [];
+
+      for (let i = 0; i < brandNewDopeArray.length; i++) {
+        if (!alreadyAddedIDs.includes(brandNewDopeArray[i].discordID)) {
+          newListArr.push({
+            name: brandNewDopeArray[i].username,
+            status: brandNewDopeArray[i].content,
+            time: brandNewDopeArray[i].createdAt
+          });
+          alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
+        }
+      }
+      var smexyString = "";
+      newListArr.forEach(status => {
+        smexyString =
+          smexyString +
+          status.name +
+          " => " +
+          status.status +
+          " at " +
+          status.time +
+          "\n";
+      });
+      channel.send(`\`\`\`${smexyString}\`\`\``);
+    })
+    .catch(err => console.log(err));
+}
+
 module.exports = {
   name: "clockin",
   description: "The user will clock in their time",
@@ -65,6 +98,8 @@ module.exports = {
           message.channel.send(
             `${message.author} has clocked in\n Please use $status command for a new status\n If you are still working the same status from last time use the $restatus command `
           );
+
+          sendLatestStatuses(message.channel);
         } else {
           message.channel.send(
             `Bro youre clocked in already get some work done`
@@ -104,7 +139,7 @@ module.exports = {
         message.channel.send(
           `${message.author} HAS NOT UPDATED THEIR STATUS SINCE CLOCKING AT\n ${losAngelesDate} `
         );
-      } 
+      }
     });
   }
 };

@@ -1,9 +1,34 @@
 const mongoose = require("mongoose");
-
+const Status = require("../models/status");
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
+
+function sendLatestStatuses(channel) {
+  Status.find()
+    .then(sList => {
+      let brandNewDopeArray = sList.reverse();
+      let newListArr = [];
+      let alreadyAddedIDs = [];
+
+      for (let i = 0; i < brandNewDopeArray.length; i++) {
+        if (!alreadyAddedIDs.includes(brandNewDopeArray[i].discordID)) {
+          newListArr.push({
+            name: brandNewDopeArray[i].username,
+            status: brandNewDopeArray[i].content
+          });
+          alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
+        }
+      }
+      var smexyString = "";
+      newListArr.forEach(status => {
+        smexyString = smexyString + status.name + " => " + status.status + " " +"\n";
+      });
+      channel.send(`\`\`\`${smexyString}\`\`\``);
+    })
+    .catch(err => console.log(err));
+}
 
 module.exports = {
   name: "clockout",
@@ -57,6 +82,8 @@ module.exports = {
           message.channel.send(
             `\`\`\`\ \n ${message.author.username} has clocked out at\n\n ${losAngelesDate} \n \`\`\``
           );
+
+          sendLatestStatuses(message.channel);
         } else {
           message.channel.send(`Bro you are clocked out already`);
         }

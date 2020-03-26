@@ -6,6 +6,39 @@ mongoose.connect("mongodb://localhost/TestPunchs", {
   useUnifiedTopology: true
 });
 
+function sendLatestStatuses(channel, status) {
+  Status.find()
+    .then(sList => {
+      let brandNewDopeArray = sList.reverse();
+      let newListArr = [];
+      let alreadyAddedIDs = [];
+
+      brandNewDopeArray = brandNewDopeArray.filter(
+        state => state.discordID != status.discordID
+      );
+      newListArr.push({
+        name: status.username,
+        status: status.content
+      });
+
+      for (let i = 0; i < brandNewDopeArray.length; i++) {
+        if (!alreadyAddedIDs.includes(brandNewDopeArray[i].discordID)) {
+          newListArr.push({
+            name: brandNewDopeArray[i].username,
+            status: brandNewDopeArray[i].content
+          });
+          alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
+        }
+      }
+      var smexyString = "";
+      newListArr.forEach(status => {
+        smexyString = smexyString + status.name + " => " + status.status + "\n";
+      });
+      channel.send(`\`\`\`${smexyString}\`\`\``);
+    })
+    .catch(err => console.log(err));
+}
+
 module.exports = {
   name: "status",
   description: "The user will input their status",
@@ -23,6 +56,7 @@ module.exports = {
     }
 
     var description = args.join(" ");
+
 
     User.findOne({ discordID: message.author.id }, (err, u) => {
       if (err) console.log(err);
@@ -58,6 +92,8 @@ module.exports = {
             .then(res => console.log(res))
             .catch(error => console.log(error));
 
+          sendLatestStatuses(message.channel, status);
+
           /**
            * Sends the User's status to
            * the desired channel
@@ -77,7 +113,7 @@ module.exports = {
         }
       }
     });
-
+    /*
     message.client.channels
       .fetch("692493652546551860")
       .then(channel => {
@@ -85,22 +121,29 @@ module.exports = {
         //   ` ${message.author} updated their status here it is \n \`\`\` ${status.content}\`\`\``
         // );
 
-        /**
-         * Get All the Status
-         * Sort them to be the most recent
-         * Make an array where it will only get
-         * the most recent status from each User
-         *
-         */
         Status.find()
           .then(sList => {
+            const brandNewDopeArray = sList.reverse();
+
             let newListArr = [];
+            let alreadyAddedIDs = [];
 
-            for (let i = sList.length - 1; i > 0; i--) {
-              //last left off
+            for (let i = 0; i < brandNewDopeArray.length; i++) {
+              if (!alreadyAddedIDs.includes(brandNewDopeArray[i].discordID)) {
+                newListArr.push({
+                  name: brandNewDopeArray[i].username,
+                  status: brandNewDopeArray[i].content
+                });
+                alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
+              }
             }
+            var smexyString = "";
+            newListArr.forEach(status => {
+              smexyString =
+                smexyString + status.name + "=> " + status.status + "\n";
+            });
+            message.channel.send(smexyString);
 
-            console.log(newListArr);
             // channel.send(` \`\`\`Status Board:
             // ${newListArr}
             // \`\`\` `);
@@ -108,5 +151,6 @@ module.exports = {
           .catch(err => console.log(err));
       })
       .catch(err => console.log(err));
+      */
   }
 };
