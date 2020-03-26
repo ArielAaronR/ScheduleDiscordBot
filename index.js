@@ -5,7 +5,7 @@ const { prefix, token } = require("./config.json");
 
 const client = new Discord.Client();
 
-const utils = require("./utils/utils");
+const Status = require("./models/status");
 
 client.commands = new Discord.Collection();
 
@@ -20,6 +20,7 @@ for (const file of commandFiles) {
 
 client.on("ready", () => {
   console.info(`Logged in as ${client.user.tag}!`);
+  
 });
 
 client.on("message", msg => {
@@ -31,24 +32,6 @@ client.on("message", msg => {
   const args = msg.content.slice(prefix.length).split(/ +/);
 
   const commandName = args.shift().toLowerCase();
-
-  // if (command === "ping") {
-  //   client.commands.get("ping").execute(msg, args);
-  // } else if (command === "beep") {
-  //   client.commands.get("beep").execute(msg, args);
-  // } else if (command === "server") {
-  //   client.commands.get("server").execute(msg, args);
-  // } else if (command === `user-info`) {
-  //   client.commands.get("user-info").execute(msg, args);
-  // } else if (command === "args-info") {
-  //   client.commands.get("args-info").execute(msg, args);
-  // } else if (command === "kick") {
-  //   client.commands.get("kick").execute(msg, args);
-  // } else if (command === "avatar") {
-  //   client.commands.get("avatar").execute(msg, args);
-  // } else if (command === "prune") {
-  //   client.commands.get("prune").execute(msg, args);
-  // }
 
   //Dynamically execute commands
   if (!client.commands.has(commandName)) return;

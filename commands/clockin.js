@@ -62,13 +62,9 @@ module.exports = {
             .then(res => console.log(` users has clocked in ${res}`))
             .catch(error => console.log(error));
 
-          Status.findOne({ discordID: message.author.id })
-            .sort({ createdAt: -1 })
-            .then(status => {
-              
-              message.channel.send(`${status.createdAt} `);
-            })
-            .catch(err => console.log(err));
+          message.channel.send(
+            `${message.author} has clocked in\n Please use $status command for a new status\n If you are still working the same status from last time use the $restatus command `
+          );
         } else {
           message.channel.send(
             `Bro youre clocked in already get some work done`
@@ -76,6 +72,7 @@ module.exports = {
         }
       }
     });
+
     /**
      * Create an Await Message function
      * wih a timer so that it will
@@ -83,40 +80,31 @@ module.exports = {
      * they make a status
      */
 
-    // const filter = message => message.content;
-    // const collector = message.channel.createMessageCollector(
-    //   filter,
-    //   m => m.author.id === message.author.id
-    // );
     // /**
     //  * Collects incoming message from the User
     //  */
-    // collector.on("collect", message => {
-    //   message.channel.send(message.content);
-    // });
-    // collector.on("end", collected => {
-    //   message.channel.send(`Status has been collected  `);
-    //   console.log(`The collected ${collected.content}`);
-    // });
-    // const filter = m => m.content && m.author.id === message.author.id;
-    // const collector = message.channel.createMessageCollector(filter, {
-    //   time: 15000
-    // });
 
-    // collector.on("collect", m => {
-    //   if (m.content.includes("$status")) {
-    //     message.channel.send(`Collected `);
-    //   }
-    // });
+    const filter = m => m.content && m.author.id === message.author.id;
+    const collector = message.channel.createMessageCollector(filter, {
+      time: 15000
+    });
 
-    // collector.on("end", collected => {
-    //   if (collected.size === 0) {
-    //     message.channel.send(
-    //       "Bro you need to update your status after clocking in "
-    //     );
-    //   } else {
-    //     message.channel.send(`Collected ${collected.size} items`);
-    //   }
-    // });
+    collector.on("collect", m => {
+      if (m.content.includes("$status")) {
+        console.log("received");
+      }
+    });
+
+    collector.on("end", collected => {
+      if (collected.size === 0) {
+        let losAngelesDate = moment(message.createdAt)
+          .tz("America/Los_Angeles")
+          .format("MM-DD-YYYY hh:mm a z");
+
+        message.channel.send(
+          `${message.author} HAS NOT UPDATED THEIR STATUS SINCE CLOCKING AT\n ${losAngelesDate} `
+        );
+      } 
+    });
   }
 };

@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const Status = require("../models/status");
 const User = require("../models/user");
-const utils = require("../utils/utils");
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -39,6 +38,7 @@ module.exports = {
           );
         } else {
           u.status = !u.status;
+
           u.save()
             .then(u =>
               console.log(
@@ -58,26 +58,55 @@ module.exports = {
             .then(res => console.log(res))
             .catch(error => console.log(error));
 
-          message.channel.send("Status recieved");
+          /**
+           * Sends the User's status to
+           * the desired channel
+           */
 
+          /**
+           * Timeout for the status
+           * Should be set to 1 hour
+           * Bot will send a message to the user
+           * to update their status providing the previous status
+           */
           setTimeout(() => {
-            message.channel.send("Time to update your status");
-          }, 3000);
-
-          message.client.channels
-            .fetch("689533676723372093")
-            .then(channel => {
-              channel.send(
-                ` ${message.author} updated their status here it is \n \`\`\` ${status.content}\`\`\``
-              );
-            })
-            .catch(err => console.log(err));
-          console.log(`${u.username} has made the status of ${status}`);
+            message.channel.send(
+              `Ding! Ding!! ${message.author} Time to update your status!\n Here was your previous status:\n \`\`\` ${status.content} \`\`\` \n Available Commands:\n $status : New Task\n $restatus : Still working on same task`
+            );
+          }, 15000);
         }
       }
-      console.log(
-        `This is the status from the status command file ${u.status}`
-      );
     });
+
+    message.client.channels
+      .fetch("692493652546551860")
+      .then(channel => {
+        // channel.send(
+        //   ` ${message.author} updated their status here it is \n \`\`\` ${status.content}\`\`\``
+        // );
+
+        /**
+         * Get All the Status
+         * Sort them to be the most recent
+         * Make an array where it will only get
+         * the most recent status from each User
+         *
+         */
+        Status.find()
+          .then(sList => {
+            let newListArr = [];
+
+            for (let i = sList.length - 1; i > 0; i--) {
+              //last left off
+            }
+
+            console.log(newListArr);
+            // channel.send(` \`\`\`Status Board:
+            // ${newListArr}
+            // \`\`\` `);
+          })
+          .catch(err => console.log(err));
+      })
+      .catch(err => console.log(err));
   }
 };

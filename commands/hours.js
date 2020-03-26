@@ -38,25 +38,29 @@ module.exports = {
               inOutArray.push(outArray[indx]);
             });
 
-            let sortedArr = inOutArray.sort((a, b) => {
-              let keyA = new Date(a.createdAt),
-                keyB = new Date(b.createdAt);
-              if (keyA < keyB) return -1;
-              if (keyA > keyB) return 1;
-              return 0;
-            });
+            let sortedArr = inOutArray
+              .sort((a, b) => {
+                let keyA = new Date(a.createdAt),
+                  keyB = new Date(b.createdAt);
+                if (keyA < keyB) return -1;
+                if (keyA > keyB) return 1;
+                return 0;
+              })
+              .filter(hours => {
+                return hours != null;
+              });
 
-            let scheduleArr = [];
-            for (let i = 0; i < sortedArr.length; i++) {
-              scheduleArr.push(sortedArr[i].punch);
-            }
-            let scheduleArrStr = scheduleArr.join(" ")
-            console.log(scheduleArrStr);
+            let scheduleArr = sortedArr
+              .map(hour => hour.punch)
+              .slice(sortedArr.length - 14, sortedArr.length);
 
+            let scheduleArrStr = scheduleArr.join(" ");
             if (!scheduleArr.length) {
-              message.channel.send(`You do not have and clock in/out logs`);
+              message.channel.send(
+                `You do not have an clock in/out logs please start by using the $clockin command`
+              );
             } else {
-              message.channel.send(`These are your hours\n ${scheduleArrStr} `);
+              message.channel.send(`HOURS: 14 of the most recent hours\n ${scheduleArrStr}`);
             }
           })
           .catch(err => console.log(err));
