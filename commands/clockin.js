@@ -87,7 +87,7 @@ module.exports = {
           const clockIn = new ClockIn({
             discordID: message.author.id,
             username: message.author.username,
-            punch: `In : ${losAngelesDate}\n`
+            punch: `In : ${losAngelesDate}`
           });
 
           clockIn

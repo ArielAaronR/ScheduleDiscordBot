@@ -4,6 +4,37 @@ const Clockin = require("../models/clockIn");
 const Clockout = require("../models/clockOut");
 
 /**
+ *
+ */
+function chunkArray(myArray) {
+  const reducer = (previous, next) => {
+    const start = moment(new Date(/:(.+)/.exec(previous.punch)[1]));
+    const end = moment(new Date(/:(.+)/.exec(next.punch)[1]));
+    const difference = start.diff(end);
+    const duration = moment.duration(difference);
+    const hours = Math.abs(duration.asMinutes() / 60);
+
+    return hours;
+  };
+  let index = 0;
+  const arrayLength = myArray.length;
+  let tempArray = [];
+  for (index = 0; index < arrayLength; index += 2) {
+    myChunk = myArray.slice(index, index + 2);
+    // we need atleast a in and out clock otherwise skip?
+    if (myChunk.length < 2) {
+      continue;
+    }
+    dateData = myChunk.reduce(reducer);
+    tempArray.push(dateData);
+  }
+
+  const totalHours = arr => tempArray.reduce((a, b) => a + b, 0);
+
+  return totalHours();
+}
+
+/**
  * Function takes in the arguments from the user
  * example "032520-032620"
  * Get the argument and split it by the "-"
@@ -14,7 +45,6 @@ const Clockout = require("../models/clockOut");
  */
 function computeHours(message, args, sortedArr) {
   let dateArray = args[0].split("-");
-  console.log(dateArray);
 
   let beforeDate = new Date(dateArray[0]);
   let afterDate = new Date(dateArray[1]);
@@ -32,13 +62,15 @@ function computeHours(message, args, sortedArr) {
       });
     }
   });
+  const grouped = chunkArray(computeDateArray);
 
   let dateString = "";
   computeDateArray.forEach(punch => {
     dateString = dateString + punch.punch + "\n";
   });
+
   if (dateString.length) {
-    message.channel.send(dateString);
+    message.channel.send(`${dateString}\n Total hours ${grouped}`);
   } else {
     message.channel.send("Oops");
   }
@@ -95,7 +127,10 @@ module.exports = {
               .map(hour => hour.punch)
               .slice(sortedArr.length - 14, sortedArr.length);
 
-            let scheduleArrStr = scheduleArr.join(" ");
+            let scheduleArrStr = "";
+            scheduleArr.forEach(hour => {
+              scheduleArrStr = scheduleArrStr + hour + "\n";
+            });
             if (!scheduleArr.length) {
               message.channel.send(
                 `You do not have an clock in/out logs please start by using the $clockin command`

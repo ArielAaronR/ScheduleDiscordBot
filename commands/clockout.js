@@ -71,7 +71,7 @@ module.exports = {
           const clockOut = new ClockOut({
             discordID: message.author.id,
             username: message.author.username,
-            punch: `Out : ${losAngelesDate}\n`
+            punch: `Out : ${losAngelesDate}`
           });
 
           clockOut
