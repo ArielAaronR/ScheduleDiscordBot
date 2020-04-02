@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Status = require("../models/status");
 const User = require("../models/user");
+
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -57,7 +58,6 @@ module.exports = {
 
     var description = args.join(" ");
 
-
     User.findOne({ discordID: message.author.id }, (err, u) => {
       if (err) console.log(err);
 
@@ -113,44 +113,5 @@ module.exports = {
         }
       }
     });
-    /*
-    message.client.channels
-      .fetch("692493652546551860")
-      .then(channel => {
-        // channel.send(
-        //   ` ${message.author} updated their status here it is \n \`\`\` ${status.content}\`\`\``
-        // );
-
-        Status.find()
-          .then(sList => {
-            const brandNewDopeArray = sList.reverse();
-
-            let newListArr = [];
-            let alreadyAddedIDs = [];
-
-            for (let i = 0; i < brandNewDopeArray.length; i++) {
-              if (!alreadyAddedIDs.includes(brandNewDopeArray[i].discordID)) {
-                newListArr.push({
-                  name: brandNewDopeArray[i].username,
-                  status: brandNewDopeArray[i].content
-                });
-                alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
-              }
-            }
-            var smexyString = "";
-            newListArr.forEach(status => {
-              smexyString =
-                smexyString + status.name + "=> " + status.status + "\n";
-            });
-            message.channel.send(smexyString);
-
-            // channel.send(` \`\`\`Status Board:
-            // ${newListArr}
-            // \`\`\` `);
-          })
-          .catch(err => console.log(err));
-      })
-      .catch(err => console.log(err));
-      */
   }
 };

@@ -1,11 +1,14 @@
 const mongoose = require("mongoose");
 const Status = require("../models/status");
+const Discord = require("discord.js");
+var moment = require("moment-timezone");
+
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
 
-function sendLatestStatuses(channel) {
+function sendLatestStatuses(channel, message) {
   Status.find()
     .then(sList => {
       let brandNewDopeArray = sList.reverse();
@@ -16,16 +19,36 @@ function sendLatestStatuses(channel) {
         if (!alreadyAddedIDs.includes(brandNewDopeArray[i].discordID)) {
           newListArr.push({
             name: brandNewDopeArray[i].username,
-            status: brandNewDopeArray[i].content
+            status: brandNewDopeArray[i].content,
+            time: moment(brandNewDopeArray[i].createdAt)
+              .tz("America/Los_Angeles")
+              .format("MM-DD-YYYY hh:mm a z")
           });
           alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
         }
       }
       var smexyString = "";
       newListArr.forEach(status => {
-        smexyString = smexyString + status.name + " => " + status.status + " " +"\n";
+        smexyString =
+          smexyString +
+          "**" +
+          status.name +
+          "**" +
+          " => " +
+          status.status +
+          "\n " +
+          status.time +
+          "\n\n";
       });
-      channel.send(`\`\`\`${smexyString}\`\`\``);
+      const embededStatusBoard = new Discord.MessageEmbed()
+        .setTitle("Status Board")
+        .setDescription(`${smexyString}`)
+        .setColor(0x00ae86)
+        .setThumbnail(
+          "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+        )
+        .setTimestamp();
+      channel.send(embededStatusBoard);
     })
     .catch(err => console.log(err));
 }
@@ -35,7 +58,6 @@ module.exports = {
   description: "The user will clock out their time",
 
   execute(message) {
-    var moment = require("moment-timezone");
     var date = message.createdAt;
 
     var losAngelesDate = moment(date)
@@ -48,20 +70,24 @@ module.exports = {
       if (err) console.log(err);
 
       if (!u) {
-        message.channel.send(
-          "User is not registered please use the commnad $reg"
-        );
+        const embedNotReg = new Discord.MessageEmbed()
+          .setAuthor(
+            message.author.username,
+            message.author.displayAvatarURL({ format: "png", dynamic: true })
+          )
+          .setTitle("User is not registered please use the command $reg")
+          .setColor(0xb60300)
+          .setThumbnail(
+            "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+          )
+          .setTimestamp();
+        message.channel.send(embedNotReg);
       } else if (u) {
         if (u.punch) {
           u.punch = !u.punch;
           u.save()
-            .then(res =>
-              console.log(
-                `Recieved update to db here is the result:  ${res.username} set status to ${res.punch}`
-              )
-            )
+            .then(res => console.log(`recieved`))
             .catch(error => console.log(error));
-          message.channel.send("You have clocked out bro!");
 
           /**
            * Creating the instance of clockout
@@ -76,16 +102,40 @@ module.exports = {
 
           clockOut
             .save()
-            .then(res => console.log(res))
+            .then(res => console.log("Receieved"))
             .catch(error => console.log(error));
 
-          message.channel.send(
-            `\`\`\`\ \n ${message.author.username} has clocked out at\n\n ${losAngelesDate} \n \`\`\``
-          );
+          const embedClockOutMsg = new Discord.MessageEmbed()
+            .setAuthor(
+              message.author.username,
+              message.author.displayAvatarURL({ format: "png", dynamic: true })
+            )
+            .setTitle(
+              `${message.author.username} has clocked out at ${losAngelesDate}`
+            )
+            .setColor(0x00ae86)
+            .setThumbnail(
+              "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+            )
+            .setTimestamp();
 
-          sendLatestStatuses(message.channel);
+          message.channel.send(embedClockOutMsg);
+
+          sendLatestStatuses(message.channel, message);
         } else {
-          message.channel.send(`Bro you are clocked out already`);
+          const embededMsg = new Discord.MessageEmbed()
+            .setAuthor(
+              message.author.username,
+              message.author.displayAvatarURL({ format: "png", dynamic: true })
+            )
+            .setTitle("Bro you are clocked out already")
+            .setColor(0xb60300)
+            .setThumbnail(
+              "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+            )
+            .setTimestamp();
+
+          message.channel.send(embededMsg);
         }
       }
     });

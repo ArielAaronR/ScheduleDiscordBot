@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Status = require("../models/status");
-const User = require("../models/user");
+const Discord = require("discord.js");
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -17,6 +17,17 @@ module.exports = {
     var losAngelesDate = moment(date)
       .tz("America/Los_Angeles")
       .format("MM-DD-YYYY hh:mm a z");
+    const embedMsg = new Discord.MessageEmbed()
+      .setTitle("Status Recieved")
+      .setAuthor(
+        message.author.username,
+        message.author.displayAvatarURL({ format: "png", dynamic: true })
+      )
+      .setColor(0x00ae86)
+      .setThumbnail(
+        "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+      )
+      .setTimestamp();
 
     Status.findOne({ discordID: message.author.id })
       .sort({ createdAt: -1 })
@@ -29,16 +40,28 @@ module.exports = {
 
         status
           .save()
-          .then(res => console.log(res))
+          .then(res => res)
           .catch(error => console.log(error));
-        message.channel.send(`Status recieved!`);
+        message.channel.send(embedMsg);
       })
       .catch(err => console.log(err));
 
     setTimeout(() => {
-      message.channel.send(
-        "Ding! Ding!! Time to update your status with the command $status! If you are still working on the same task make sure to use $restatus command!"
-      );
+      const embedReminderMsg = new Discord.MessageEmbed()
+        .setTitle(
+          "Ding! Ding!! Time to update your status with the command $status! If you are still working on the same task make sure to use $restatus command!"
+        )
+        .setAuthor(
+          message.author.username,
+          message.author.displayAvatarURL({ format: "png", dynamic: true })
+        )
+        .setColor(0x00ae86)
+        .setThumbnail(
+          "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+        )
+        .setTimestamp();
+
+      message.channel.send(embedReminderMsg);
     }, 15000);
   }
 };

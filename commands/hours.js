@@ -1,11 +1,8 @@
-const mongoose = require("mongoose");
+const Discord = require("discord.js");
 const moment = require("moment");
 const Clockin = require("../models/clockIn");
 const Clockout = require("../models/clockOut");
 
-/**
- *
- */
 function chunkArray(myArray) {
   const reducer = (previous, next) => {
     const start = moment(new Date(/:(.+)/.exec(previous.punch)[1]));
@@ -16,6 +13,7 @@ function chunkArray(myArray) {
 
     return hours;
   };
+
   let index = 0;
   const arrayLength = myArray.length;
   let tempArray = [];
@@ -30,8 +28,8 @@ function chunkArray(myArray) {
   }
 
   const totalHours = arr => tempArray.reduce((a, b) => a + b, 0);
-
-  return totalHours();
+  // console.log(tempArray);
+  return [totalHours(), tempArray];
 }
 
 /**
@@ -48,7 +46,7 @@ function computeHours(message, args, sortedArr) {
 
   let beforeDate = new Date(dateArray[0]);
   let afterDate = new Date(dateArray[1]);
-
+  let lastHourMin = moment(afterDate).endOf("day");
   let computeDateArray = [];
 
   let filteredArray = sortedArr.filter(hours => {
@@ -56,7 +54,7 @@ function computeHours(message, args, sortedArr) {
   });
 
   filteredArray.forEach(date => {
-    if (date.createdAt >= beforeDate && date.createdAt <= afterDate) {
+    if (date.createdAt >= beforeDate && date.createdAt <= lastHourMin) {
       computeDateArray.push({
         punch: date.punch
       });
@@ -64,15 +62,77 @@ function computeHours(message, args, sortedArr) {
   });
   const grouped = chunkArray(computeDateArray);
 
-  let dateString = "";
-  computeDateArray.forEach(punch => {
-    dateString = dateString + punch.punch + "\n";
-  });
+  const combinedHourArr = [];
+  const eachHourArr = grouped[1];
 
+  // for (let i = 0; i < combinedHourArr.length; i++) {
+  //   combinedHourArr[i].push(eachHourArr[i]);
+  // }
+
+  computeDateArray.forEach(punch => {
+    combinedHourArr.push(punch.punch);
+  });
+  let newCombinedHourArr = [];
+  for (let i = 0; i < combinedHourArr.length; i += 2) {
+    let splicedArr = combinedHourArr.slice(i, i + 2);
+    if (splicedArr.length < 2) {
+      continue;
+    }
+    newCombinedHourArr.push(splicedArr);
+  }
+  for (let i = 0; i < newCombinedHourArr.length; i++) {
+    newCombinedHourArr[i].push(eachHourArr[i]);
+  }
+
+  let reformatSchedule = [];
+  for (let i = 0; i < newCombinedHourArr.length; i++) {
+    let string = "";
+    string = ` ${newCombinedHourArr[i][0]}\n${newCombinedHourArr[i][1]}
+    **Hours: ${newCombinedHourArr[i][2]}**`;
+    reformatSchedule.push(string);
+  }
+
+  let dateString = "";
+  for (let i = 0; i < reformatSchedule.length; i++) {
+    dateString += reformatSchedule[i] + "\n\n";
+  }
   if (dateString.length) {
-    message.channel.send(`${dateString}\n Total hours ${grouped}`);
+    let momentBeforeDate = moment(beforeDate).format("MM-DD-YYYY");
+    let momentAfterDate = moment(afterDate).format("MM-DD-YYYY");
+
+    const embedHoursRange = new Discord.MessageEmbed()
+      .setAuthor(
+        message.author.username,
+        message.author.displayAvatarURL({ format: "png", dynamic: true })
+      )
+      .setTitle(`Hours from ${momentBeforeDate} to ${momentAfterDate}`)
+      .setDescription(
+        `${dateString}
+      **Total Hours ${grouped[0]}**`
+      )
+      .setColor(0x00ae86)
+      .setThumbnail(
+        message.author.displayAvatarURL({ format: "png", dynamic: true })
+      )
+      .setTimestamp();
+
+    message.channel.send(embedHoursRange);
   } else {
-    message.channel.send("Oops");
+    const embedWarningMsg = new Discord.MessageEmbed()
+      .setAuthor(
+        "Clockdere",
+        "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png",
+        "https://yagami.xyz"
+      )
+      .setTitle("Please add an appropiate date range")
+      .setDescription("Format: $hours mm/dd/yy-mm/dd/yy")
+      .setColor(0xb60300)
+      .setThumbnail(
+        "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+      )
+      .setTimestamp();
+
+    message.channel.send(embedWarningMsg);
   }
 }
 
@@ -129,17 +189,32 @@ module.exports = {
 
             let scheduleArrStr = "";
             scheduleArr.forEach(hour => {
-              scheduleArrStr = scheduleArrStr + hour + "\n";
+              scheduleArrStr = scheduleArrStr + hour + "";
             });
             if (!scheduleArr.length) {
-              message.channel.send(
-                `You do not have an clock in/out logs please start by using the $clockin command`
-              );
+              const embededWarningMsg = new Discord.MessageEmbed()
+                .setTitle(
+                  "You do not have an clock in/out logs please start by using the $clockin command"
+                )
+                .setColor(0xb60300)
+                .setThumbnail(
+                  "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+                )
+                .setTimestamp();
+
+              message.channel.send(embededWarningMsg);
             } else {
               if (!args.length) {
-                message.channel.send(
-                  `HOURS: 14 of the most recent hours\n ${scheduleArrStr}`
-                );
+                const embed14hours = new Discord.MessageEmbed()
+                  .setTitle("HOURS: 14 of the most recent hours")
+                  .setDescription(`${scheduleArrStr}`)
+                  .setColor(0x00ae86)
+                  .setThumbnail(
+                    "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+                  )
+                  .setTimestamp();
+
+                message.channel.send(embed14hours);
               } else {
                 computeHours(message, args, sortedArr);
               }

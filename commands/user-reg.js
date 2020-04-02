@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Discord = require("discord.js");
 
 module.exports = {
   name: "reg",
@@ -24,11 +25,31 @@ module.exports = {
           .save()
           .then(res => console.log("**************\n\n saved to db\n\n" + res))
           .catch(error => console.log(error));
-        message.channel.send("Congrats you have registered");
+        const embedMsg = new Discord.MessageEmbed()
+          .setAuthor(
+            message.author.username,
+            message.author.displayAvatarURL({ format: "png", dynamic: true })
+          )
+          .setTitle("Congratulations you have registered!")
+          .setColor(0x00ae86)
+          .setThumbnail(
+            "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+          )
+          .setTimestamp();
+        message.channel.send(embedMsg);
       } else {
-        message.channel.send("You exist already tf");
-
-        console.log(u + " is already in db");
+        const embedWarningMsg = new Discord.MessageEmbed()
+          .setAuthor(
+            message.author.username,
+            message.author.displayAvatarURL({ format: "png", dynamic: true })
+          )
+          .setTitle("You are already registered in to ")
+          .setColor(0xb60300)
+          .setThumbnail(
+            "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+          )
+          .setTimestamp();
+        message.channel.send(embedWarningMsg);
       }
     });
   }

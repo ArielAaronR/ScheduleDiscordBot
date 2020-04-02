@@ -5,8 +5,6 @@ const { prefix, token } = require("./config.json");
 
 const client = new Discord.Client();
 
-const Status = require("./models/status");
-
 client.commands = new Discord.Collection();
 
 const commandFiles = fs
@@ -20,7 +18,6 @@ for (const file of commandFiles) {
 
 client.on("ready", () => {
   console.info(`Logged in as ${client.user.tag}!`);
-  
 });
 
 client.on("message", msg => {

@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 const Status = require("../models/status");
+var moment = require("moment-timezone");
+
+const Discord = require("discord.js");
+
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -17,7 +21,9 @@ function sendLatestStatuses(channel) {
           newListArr.push({
             name: brandNewDopeArray[i].username,
             status: brandNewDopeArray[i].content,
-            time: brandNewDopeArray[i].createdAt
+            time: moment(brandNewDopeArray[i].createdAt)
+              .tz("America/Los_Angeles")
+              .format("MM-DD-YYYY hh:mm a z")
           });
           alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
         }
@@ -26,14 +32,29 @@ function sendLatestStatuses(channel) {
       newListArr.forEach(status => {
         smexyString =
           smexyString +
+          "**" +
           status.name +
+          "**" +
           " => " +
           status.status +
-          " at " +
+          " \n " +
           status.time +
-          "\n";
+          "\n\n";
       });
-      channel.send(`\`\`\`${smexyString}\`\`\``);
+      const embededStatusBoard = new Discord.MessageEmbed()
+        .setTitle("Status Board")
+        .setAuthor(
+          "Clockdere",
+          "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png",
+          "https://yagami.xyz"
+        )
+        .setDescription(`${smexyString}`)
+        .setColor(0x00ae86)
+        .setThumbnail(
+          "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+        )
+        .setTimestamp();
+      channel.send(embededStatusBoard);
     })
     .catch(err => console.log(err));
 }
@@ -92,53 +113,89 @@ module.exports = {
 
           clockIn
             .save()
-            .then(res => console.log(` users has clocked in ${res}`))
+            .then(res => console.log(` users has clocked in`))
             .catch(error => console.log(error));
 
-          message.channel.send(
-            `${message.author} has clocked in\n Please use $status command for a new status\n If you are still working the same status from last time use the $restatus command `
-          );
+          const embedClockinMsg = new Discord.MessageEmbed()
+            .setAuthor(
+              message.author.username,
+              message.author.displayAvatarURL({ format: "png", dynamic: true })
+            )
+            .setTitle(`${message.author.username} has clocked in`)
+            .setDescription(
+              `Please use $status command for a new status\n If you are still working the same status from last time use the $restatus command `
+            )
+            .setColor(0x00ae86)
+            .setThumbnail(
+              "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+            )
+            .setTimestamp();
+
+          message.channel.send(embedClockinMsg);
 
           sendLatestStatuses(message.channel);
+          /**
+           * Create an Await Message function
+           * wih a timer so that it will
+           * reminder the user to message until
+           * they make a status
+           */
+
+          // /**
+          //  * Collects incoming message from the User
+          //  */
+
+          const filter = m => m.content && m.author.id === message.author.id;
+          const collector = message.channel.createMessageCollector(filter, {
+            time: 600000
+          });
+
+          collector.on("collect", m => {
+            if (m.content.includes("$status")) {
+              console.log("received");
+            }
+          });
+
+          collector.on("end", collected => {
+            if (collected.size === 0) {
+              let losAngelesDate = moment(message.createdAt)
+                .tz("America/Los_Angeles")
+                .format("MM-DD-YYYY hh:mm a z");
+              const embedMsg = new Discord.MessageEmbed()
+
+                .setTitle(
+                  `${message.author.username} has not updated their status since clocking in at ${losAngelesDate}`
+                )
+                .setAuthor(
+                  message.author.username,
+                  message.author.displayAvatarURL({
+                    format: "png",
+                    dynamic: true
+                  })
+                )
+                .setColor(0x00ae86)
+                .setThumbnail(
+                  "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+                )
+                .setTimestamp();
+
+              message.channel.send(embedMsg);
+            }
+          });
         } else {
-          message.channel.send(
-            `Bro youre clocked in already get some work done`
-          );
+          const embedMsg = new Discord.MessageEmbed()
+            .setAuthor(
+              message.author.username,
+              message.author.displayAvatarURL({ format: "png", dynamic: true })
+            )
+            .setTitle(" Bro youre clocked in already get some work done")
+            .setColor(0xb60300)
+            .setThumbnail(
+              "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+            )
+            .setTimestamp();
+          message.channel.send(embedMsg);
         }
-      }
-    });
-
-    /**
-     * Create an Await Message function
-     * wih a timer so that it will
-     * reminder the user to message until
-     * they make a status
-     */
-
-    // /**
-    //  * Collects incoming message from the User
-    //  */
-
-    const filter = m => m.content && m.author.id === message.author.id;
-    const collector = message.channel.createMessageCollector(filter, {
-      time: 15000
-    });
-
-    collector.on("collect", m => {
-      if (m.content.includes("$status")) {
-        console.log("received");
-      }
-    });
-
-    collector.on("end", collected => {
-      if (collected.size === 0) {
-        let losAngelesDate = moment(message.createdAt)
-          .tz("America/Los_Angeles")
-          .format("MM-DD-YYYY hh:mm a z");
-
-        message.channel.send(
-          `${message.author} HAS NOT UPDATED THEIR STATUS SINCE CLOCKING AT\n ${losAngelesDate} `
-        );
       }
     });
   }
