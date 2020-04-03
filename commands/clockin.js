@@ -4,6 +4,7 @@ var moment = require("moment-timezone");
 
 const Discord = require("discord.js");
 
+const User = require("../models/user.js");
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -41,6 +42,7 @@ function sendLatestStatuses(channel) {
           status.time +
           "\n\n";
       });
+
       const embededStatusBoard = new Discord.MessageEmbed()
         .setTitle("Status Board")
         .setAuthor(
@@ -54,7 +56,17 @@ function sendLatestStatuses(channel) {
           "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
         )
         .setTimestamp();
-      channel.send(embededStatusBoard);
+
+      channel.client.channels
+        .fetch("695362410713841716")
+        .then(channel => {
+          channel
+            .bulkDelete(1)
+            .then(messages => console.log(`${messages.size} has been deleted`))
+            .catch(err => console.log(err));
+          channel.send(embededStatusBoard);
+        })
+        .catch(err => console.log(err));
     })
     .catch(err => console.log(err));
 }
@@ -76,7 +88,6 @@ module.exports = {
       .tz("America/Los_Angeles")
       .format("MM-DD-YYYY hh:mm a z");
 
-    const User = require("../models/user.js");
     /**
      * Find the User and Create the clockin object
      * and save to the db

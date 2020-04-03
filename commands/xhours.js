@@ -28,7 +28,7 @@ function chunkArray(myArray) {
 
   const totalHours = arr => tempArray.reduce((a, b) => a + b, 0);
 
-  return totalHours();
+  return [totalHours(), tempArray];
 }
 /**
  * Get the In and Out arrays
@@ -37,7 +37,7 @@ function chunkArray(myArray) {
  *
  */
 
-async function getHours(user, message, args) {
+async function getHours(user, message, args, mentionUser) {
   let dateArray = args[1].split("-");
 
   let beforeDate = new Date(dateArray[0]);
@@ -82,20 +82,51 @@ async function getHours(user, message, args) {
 
   const grouped = chunkArray(computeDateArray);
 
-  let dateString = "";
+  const combinedHourArr = [];
+  const eachHourArr = grouped[1];
+
   computeDateArray.forEach(punch => {
-    dateString = dateString + punch.punch + "\n";
+    combinedHourArr.push(punch.punch);
   });
+  let newCombinedHourArr = [];
+  for (let i = 0; i < combinedHourArr.length; i += 2) {
+    let splicedArr = combinedHourArr.slice(i, i + 2);
+    if (splicedArr.length < 2) {
+      continue;
+    }
+    newCombinedHourArr.push(splicedArr);
+  }
+  for (let i = 0; i < newCombinedHourArr.length; i++) {
+    newCombinedHourArr[i].push(eachHourArr[i]);
+  }
+
+  let reformatSchedule = [];
+  for (let i = 0; i < newCombinedHourArr.length; i++) {
+    let string = "";
+    string = ` ${newCombinedHourArr[i][0]}\n${newCombinedHourArr[i][1]}
+    **Hours: ${newCombinedHourArr[i][2]}**`;
+    reformatSchedule.push(string);
+  }
+
+  let dateString = "";
+  for (let i = 0; i < reformatSchedule.length; i++) {
+    dateString += reformatSchedule[i] + "\n\n";
+  }
+  let momentBeforeDate = moment(beforeDate).format("MM-DD-YYYY");
+  let momentAfterDate = moment(afterDate).format("MM-DD-YYYY");
   const embedMsg = new Discord.MessageEmbed()
     .setAuthor(
-      "Clockdere",
-      "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png",
-      "https://yagami.xyz"
+      mentionUser.username,
+      mentionUser.displayAvatarURL({ format: "png", dynamic: true })
     )
-    .setTitle(`${dateString}\n Total hours ${grouped}`)
+    .setTitle(`Hours from ${momentBeforeDate} to ${momentAfterDate}`)
+    .setDescription(
+      `${dateString}
+    **Total Hours ${grouped[0]}**`
+    )
     .setColor(0x00ae86)
     .setThumbnail(
-      "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+      mentionUser.displayAvatarURL({ format: "png", dynamic: true })
     )
     .setTimestamp();
 
@@ -112,6 +143,7 @@ async function getHours(user, message, args) {
       "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
     )
     .setTimestamp();
+
   if (dateString.length) {
     message.author.send(embedMsg);
   } else {
@@ -144,7 +176,6 @@ module.exports = {
       return message.channel.send("⚠️ You need to mention a user");
     }
 
-    console.log(mentionUser.id);
-    getHours(mentionUser.id, message, args);
+    getHours(mentionUser.id, message, args, mentionUser);
   }
 };

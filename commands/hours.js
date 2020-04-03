@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+
 const moment = require("moment");
 const Clockin = require("../models/clockIn");
 const Clockout = require("../models/clockOut");
@@ -65,9 +66,6 @@ function computeHours(message, args, sortedArr) {
   const combinedHourArr = [];
   const eachHourArr = grouped[1];
 
-  // for (let i = 0; i < combinedHourArr.length; i++) {
-  //   combinedHourArr[i].push(eachHourArr[i]);
-  // }
 
   computeDateArray.forEach(punch => {
     combinedHourArr.push(punch.punch);

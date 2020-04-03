@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const Status = require("../models/status");
 const User = require("../models/user");
+const Discord = require("discord.js");
+var moment = require("moment-timezone");
 
 mongoose.connect("mongodb://localhost/TestPunchs", {
   useNewUrlParser: true,
@@ -19,23 +21,55 @@ function sendLatestStatuses(channel, status) {
       );
       newListArr.push({
         name: status.username,
-        status: status.content
+        status: status.content,
+        time: moment(status.createdAt)
+          .tz("America/Los_Angeles")
+          .format("MM-DD-YYYY hh:mm a z")
       });
 
       for (let i = 0; i < brandNewDopeArray.length; i++) {
         if (!alreadyAddedIDs.includes(brandNewDopeArray[i].discordID)) {
           newListArr.push({
             name: brandNewDopeArray[i].username,
-            status: brandNewDopeArray[i].content
+            status: brandNewDopeArray[i].content,
+            time: moment(brandNewDopeArray[i].createdAt)
+              .tz("America/Los_Angeles")
+              .format("MM-DD-YYYY hh:mm a z")
           });
           alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
         }
       }
       var smexyString = "";
       newListArr.forEach(status => {
-        smexyString = smexyString + status.name + " => " + status.status + "\n";
+        smexyString =
+          smexyString +
+          "**" +
+          status.name +
+          "**" +
+          " => " +
+          status.status +
+          "\n " +
+          status.time +
+          "\n\n";
       });
-      channel.send(`\`\`\`${smexyString}\`\`\``);
+      const embededStatusBoard = new Discord.MessageEmbed()
+        .setTitle("Status Board")
+        .setDescription(`${smexyString}`)
+        .setThumbnail(
+          "https://www.seekpng.com/png/detail/135-1355054_clipboard-clipart-svg-clipboard-with-pen-icon.png"
+        )
+        .setColor(0x00ae86)
+        .setTimestamp();
+      channel.client.channels
+        .fetch("695362410713841716")
+        .then(channel => {
+          channel
+            .bulkDelete(2)
+            .then(messages => console.log(`${messages.size} has been deleted`))
+            .catch(err => console.log(err));
+          channel.send(embededStatusBoard);
+        })
+        .catch(err => console.log(err));
     })
     .catch(err => console.log(err));
 }
@@ -62,23 +96,52 @@ module.exports = {
       if (err) console.log(err);
 
       if (!u) {
-        message.channel.send(
-          "User is not registered please use the commnad $reg"
-        );
+        const embedWarningMsg = new Discord.MessageEmbed()
+          .setAuthor(
+            message.author.username,
+            message.author.displayAvatarURL({
+              format: "png",
+              dynamic: true
+            })
+          )
+          .setTitle("User is not registered please use the commnad $reg")
+          .setColor(0xb60300)
+          .setThumbnail(
+            message.author.displayAvatarURL({
+              format: "png",
+              dynamic: true
+            })
+          )
+          .setTimestamp();
+
+        message.channel.send(embedWarningMsg);
       } else if (u) {
         if (!u.punch) {
-          message.channel.send(
-            `${u.username} please clock in to update status`
-          );
+          const embedWarningMsg = new Discord.MessageEmbed()
+            .setAuthor(
+              message.author.username,
+              message.author.displayAvatarURL({
+                format: "png",
+                dynamic: true
+              })
+            )
+            .setTitle(
+              `${message.author.username} please clock in to update status`
+            )
+            .setColor(0xb60300)
+            .setThumbnail(
+              message.author.displayAvatarURL({
+                format: "png",
+                dynamic: true
+              })
+            )
+            .setTimestamp();
+          message.channel.send(embedWarningMsg);
         } else {
           u.status = !u.status;
 
           u.save()
-            .then(u =>
-              console.log(
-                `${u.username} has logged a status and it set to ${u.status}`
-              )
-            )
+            .then(u => console.log(`Logged in`))
             .catch(err => console.log(err));
 
           const status = new Status({
@@ -89,7 +152,7 @@ module.exports = {
 
           status
             .save()
-            .then(res => console.log(res))
+            .then(res => console.log("received"))
             .catch(error => console.log(error));
 
           sendLatestStatuses(message.channel, status);
@@ -106,9 +169,29 @@ module.exports = {
            * to update their status providing the previous status
            */
           setTimeout(() => {
-            message.channel.send(
-              `Ding! Ding!! ${message.author} Time to update your status!\n Here was your previous status:\n \`\`\` ${status.content} \`\`\` \n Available Commands:\n $status : New Task\n $restatus : Still working on same task`
-            );
+            const embedStatusMsg = new Discord.MessageEmbed()
+              .setAuthor(
+                message.author.username,
+                message.author.displayAvatarURL({
+                  format: "png",
+                  dynamic: true
+                })
+              )
+              .setTitle(
+                `Ding! Ding!! ${message.author.username} Time to update your status!`
+              )
+              .setDescription(
+                `\n Here was your previous status:\n \`\`\` ${status.content} \`\`\` \n Available Commands:\n $status : New Task\n $restatus : Still working on same task`
+              )
+              .setColor(0x00ae86)
+              .setThumbnail(
+                message.author.displayAvatarURL({
+                  format: "png",
+                  dynamic: true
+                })
+              )
+              .setTimestamp();
+            message.channel.send(embedStatusMsg);
           }, 15000);
         }
       }

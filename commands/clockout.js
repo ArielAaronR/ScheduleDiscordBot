@@ -48,7 +48,16 @@ function sendLatestStatuses(channel, message) {
           "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
         )
         .setTimestamp();
-      channel.send(embededStatusBoard);
+      channel.client.channels
+        .fetch("695362410713841716")
+        .then(channel => {
+          channel
+            .bulkDelete(1)
+            .then(messages => console.log(`${messages.size} has been deleted`))
+            .catch(err => console.log(err));
+          channel.send(embededStatusBoard);
+        })
+        .catch(err => console.log(err));
     })
     .catch(err => console.log(err));
 }
