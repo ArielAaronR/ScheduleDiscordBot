@@ -6,10 +6,17 @@ module.exports = {
   description: " This command will create a user for the databse",
 
   execute(message) {
-    mongoose.connect("mongodb://localhost/TestPunchs", {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    const uri =
+      "mongodb+srv://discordClockBot:clockdere135@cluster0.ktfqa.mongodb.net/discordClockBot?retryWrites=true&w=majority";
+    mongoose
+      .connect(uri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      })
+      .then(() => {
+        console.log("MongoDB Connected…");
+      })
+      .catch((err) => console.log(err));
 
     const User = require("../models/user.js");
 
@@ -19,12 +26,14 @@ module.exports = {
         const user = new User({
           discordID: message.author.id,
           username: message.author.username,
-          status: 0
+          status: 0,
         });
         user
           .save()
-          .then(res => console.log("**************\n\n saved to db\n\n" + res))
-          .catch(error => console.log(error));
+          .then((res) =>
+            console.log("**************\n\n saved to db\n\n" + res)
+          )
+          .catch((error) => console.log(error));
         const embedMsg = new Discord.MessageEmbed()
           .setAuthor(
             message.author.username,
@@ -52,5 +61,5 @@ module.exports = {
         message.channel.send(embedWarningMsg);
       }
     });
-  }
+  },
 };

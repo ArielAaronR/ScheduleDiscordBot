@@ -4,27 +4,33 @@ const User = require("../models/user");
 const Discord = require("discord.js");
 var moment = require("moment-timezone");
 
-mongoose.connect("mongodb://localhost/TestPunchs", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
-
+const uri =
+  "mongodb+srv://discordClockBot:clockdere135@cluster0.ktfqa.mongodb.net/discordClockBot?retryWrites=true&w=majority";
+mongoose
+  .connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("MongoDB Connected…");
+  })
+  .catch((err) => console.log(err));
 function sendLatestStatuses(channel, status) {
   Status.find()
-    .then(sList => {
+    .then((sList) => {
       let brandNewDopeArray = sList.reverse();
       let newListArr = [];
       let alreadyAddedIDs = [];
 
       brandNewDopeArray = brandNewDopeArray.filter(
-        state => state.discordID != status.discordID
+        (state) => state.discordID != status.discordID
       );
       newListArr.push({
         name: status.username,
         status: status.content,
         time: moment(status.createdAt)
           .tz("America/Los_Angeles")
-          .format("MM-DD-YYYY hh:mm a z")
+          .format("MM-DD-YYYY hh:mm a z"),
       });
 
       for (let i = 0; i < brandNewDopeArray.length; i++) {
@@ -34,13 +40,13 @@ function sendLatestStatuses(channel, status) {
             status: brandNewDopeArray[i].content,
             time: moment(brandNewDopeArray[i].createdAt)
               .tz("America/Los_Angeles")
-              .format("MM-DD-YYYY hh:mm a z")
+              .format("MM-DD-YYYY hh:mm a z"),
           });
           alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
         }
       }
       var smexyString = "";
-      newListArr.forEach(status => {
+      newListArr.forEach((status) => {
         smexyString =
           smexyString +
           "**" +
@@ -62,16 +68,18 @@ function sendLatestStatuses(channel, status) {
         .setTimestamp();
       channel.client.channels
         .fetch("695362410713841716")
-        .then(channel => {
+        .then((channel) => {
           channel
             .bulkDelete(2)
-            .then(messages => console.log(`${messages.size} has been deleted`))
-            .catch(err => console.log(err));
+            .then((messages) =>
+              console.log(`${messages.size} has been deleted`)
+            )
+            .catch((err) => console.log(err));
           channel.send(embededStatusBoard);
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.log(err));
     })
-    .catch(err => console.log(err));
+    .catch((err) => console.log(err));
 }
 
 module.exports = {
@@ -101,7 +109,7 @@ module.exports = {
             message.author.username,
             message.author.displayAvatarURL({
               format: "png",
-              dynamic: true
+              dynamic: true,
             })
           )
           .setTitle("User is not registered please use the commnad $reg")
@@ -109,7 +117,7 @@ module.exports = {
           .setThumbnail(
             message.author.displayAvatarURL({
               format: "png",
-              dynamic: true
+              dynamic: true,
             })
           )
           .setTimestamp();
@@ -122,7 +130,7 @@ module.exports = {
               message.author.username,
               message.author.displayAvatarURL({
                 format: "png",
-                dynamic: true
+                dynamic: true,
               })
             )
             .setTitle(
@@ -132,7 +140,7 @@ module.exports = {
             .setThumbnail(
               message.author.displayAvatarURL({
                 format: "png",
-                dynamic: true
+                dynamic: true,
               })
             )
             .setTimestamp();
@@ -141,19 +149,19 @@ module.exports = {
           u.status = !u.status;
 
           u.save()
-            .then(u => console.log(`Logged in`))
-            .catch(err => console.log(err));
+            .then((u) => console.log(`Logged in`))
+            .catch((err) => console.log(err));
 
           const status = new Status({
             discordID: message.author.id,
             username: message.author.username,
-            content: description
+            content: description,
           });
 
           status
             .save()
-            .then(res => console.log("received"))
-            .catch(error => console.log(error));
+            .then((res) => console.log("received"))
+            .catch((error) => console.log(error));
 
           sendLatestStatuses(message.channel, status);
 
@@ -174,7 +182,7 @@ module.exports = {
                 message.author.username,
                 message.author.displayAvatarURL({
                   format: "png",
-                  dynamic: true
+                  dynamic: true,
                 })
               )
               .setTitle(
@@ -187,7 +195,7 @@ module.exports = {
               .setThumbnail(
                 message.author.displayAvatarURL({
                   format: "png",
-                  dynamic: true
+                  dynamic: true,
                 })
               )
               .setTimestamp();
@@ -196,5 +204,5 @@ module.exports = {
         }
       }
     });
-  }
+  },
 };

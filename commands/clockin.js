@@ -5,14 +5,26 @@ var moment = require("moment-timezone");
 const Discord = require("discord.js");
 
 const User = require("../models/user.js");
-mongoose.connect("mongodb://localhost/TestPunchs", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+
+// mongoose.connect("mongodb://localhost/TestPunchs", {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// });
+const uri =
+  "mongodb+srv://discordClockBot:clockdere135@cluster0.ktfqa.mongodb.net/discordClockBot?retryWrites=true&w=majority";
+mongoose
+  .connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("MongoDB Connected…");
+  })
+  .catch((err) => console.log(err));
 
 function sendLatestStatuses(channel) {
   Status.find()
-    .then(sList => {
+    .then((sList) => {
       let brandNewDopeArray = sList.reverse();
       let newListArr = [];
       let alreadyAddedIDs = [];
@@ -24,13 +36,13 @@ function sendLatestStatuses(channel) {
             status: brandNewDopeArray[i].content,
             time: moment(brandNewDopeArray[i].createdAt)
               .tz("America/Los_Angeles")
-              .format("MM-DD-YYYY hh:mm a z")
+              .format("MM-DD-YYYY hh:mm a z"),
           });
           alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
         }
       }
       var smexyString = "";
-      newListArr.forEach(status => {
+      newListArr.forEach((status) => {
         smexyString =
           smexyString +
           "**" +
@@ -59,16 +71,18 @@ function sendLatestStatuses(channel) {
 
       channel.client.channels
         .fetch("695362410713841716")
-        .then(channel => {
+        .then((channel) => {
           channel
             .bulkDelete(1)
-            .then(messages => console.log(`${messages.size} has been deleted`))
-            .catch(err => console.log(err));
+            .then((messages) =>
+              console.log(`${messages.size} has been deleted`)
+            )
+            .catch((err) => console.log(err));
           channel.send(embededStatusBoard);
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.log(err));
     })
-    .catch(err => console.log(err));
+    .catch((err) => console.log(err));
 }
 
 module.exports = {
@@ -104,12 +118,12 @@ module.exports = {
         if (!u.punch) {
           u.punch = !u.punch;
           u.save()
-            .then(res =>
+            .then((res) =>
               console.log(
                 `Recieved update to db here is the result:  ${res.username} has set status to ${res.punch}`
               )
             )
-            .catch(error => console.log(error));
+            .catch((error) => console.log(error));
 
           const ClockIn = require("../models/clockIn.js");
 
@@ -119,13 +133,13 @@ module.exports = {
           const clockIn = new ClockIn({
             discordID: message.author.id,
             username: message.author.username,
-            punch: `In : ${losAngelesDate}`
+            punch: `In : ${losAngelesDate}`,
           });
 
           clockIn
             .save()
-            .then(res => console.log(` users has clocked in`))
-            .catch(error => console.log(error));
+            .then((res) => console.log(` users has clocked in`))
+            .catch((error) => console.log(error));
 
           const embedClockinMsg = new Discord.MessageEmbed()
             .setAuthor(
@@ -138,7 +152,7 @@ module.exports = {
             )
             .setColor(0x00ae86)
             .setThumbnail(
-              "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+              message.author.displayAvatarURL({ format: "png", dynamic: true })
             )
             .setTimestamp();
 
@@ -156,18 +170,18 @@ module.exports = {
           //  * Collects incoming message from the User
           //  */
 
-          const filter = m => m.content && m.author.id === message.author.id;
+          const filter = (m) => m.content && m.author.id === message.author.id;
           const collector = message.channel.createMessageCollector(filter, {
-            time: 600000
+            time: 600000,
           });
 
-          collector.on("collect", m => {
+          collector.on("collect", (m) => {
             if (m.content.includes("$status")) {
               console.log("received");
             }
           });
 
-          collector.on("end", collected => {
+          collector.on("end", (collected) => {
             if (collected.size === 0) {
               let losAngelesDate = moment(message.createdAt)
                 .tz("America/Los_Angeles")
@@ -181,12 +195,15 @@ module.exports = {
                   message.author.username,
                   message.author.displayAvatarURL({
                     format: "png",
-                    dynamic: true
+                    dynamic: true,
                   })
                 )
                 .setColor(0x00ae86)
                 .setThumbnail(
-                  "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+                  message.author.displayAvatarURL({
+                    format: "png",
+                    dynamic: true,
+                  })
                 )
                 .setTimestamp();
 
@@ -209,5 +226,5 @@ module.exports = {
         }
       }
     });
-  }
+  },
 };

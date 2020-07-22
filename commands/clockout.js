@@ -3,14 +3,21 @@ const Status = require("../models/status");
 const Discord = require("discord.js");
 var moment = require("moment-timezone");
 
-mongoose.connect("mongodb://localhost/TestPunchs", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+const uri =
+  "mongodb+srv://discordClockBot:clockdere135@cluster0.ktfqa.mongodb.net/discordClockBot?retryWrites=true&w=majority";
+mongoose
+  .connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("MongoDB Connected…");
+  })
+  .catch((err) => console.log(err));
 
 function sendLatestStatuses(channel, message) {
   Status.find()
-    .then(sList => {
+    .then((sList) => {
       let brandNewDopeArray = sList.reverse();
       let newListArr = [];
       let alreadyAddedIDs = [];
@@ -22,13 +29,13 @@ function sendLatestStatuses(channel, message) {
             status: brandNewDopeArray[i].content,
             time: moment(brandNewDopeArray[i].createdAt)
               .tz("America/Los_Angeles")
-              .format("MM-DD-YYYY hh:mm a z")
+              .format("MM-DD-YYYY hh:mm a z"),
           });
           alreadyAddedIDs.push(brandNewDopeArray[i].discordID);
         }
       }
       var smexyString = "";
-      newListArr.forEach(status => {
+      newListArr.forEach((status) => {
         smexyString =
           smexyString +
           "**" +
@@ -50,16 +57,18 @@ function sendLatestStatuses(channel, message) {
         .setTimestamp();
       channel.client.channels
         .fetch("695362410713841716")
-        .then(channel => {
+        .then((channel) => {
           channel
             .bulkDelete(1)
-            .then(messages => console.log(`${messages.size} has been deleted`))
-            .catch(err => console.log(err));
+            .then((messages) =>
+              console.log(`${messages.size} has been deleted`)
+            )
+            .catch((err) => console.log(err));
           channel.send(embededStatusBoard);
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.log(err));
     })
-    .catch(err => console.log(err));
+    .catch((err) => console.log(err));
 }
 
 module.exports = {
@@ -95,8 +104,8 @@ module.exports = {
         if (u.punch) {
           u.punch = !u.punch;
           u.save()
-            .then(res => console.log(`recieved`))
-            .catch(error => console.log(error));
+            .then((res) => console.log(`recieved`))
+            .catch((error) => console.log(error));
 
           /**
            * Creating the instance of clockout
@@ -106,13 +115,13 @@ module.exports = {
           const clockOut = new ClockOut({
             discordID: message.author.id,
             username: message.author.username,
-            punch: `Out : ${losAngelesDate}`
+            punch: `Out : ${losAngelesDate}`,
           });
 
           clockOut
             .save()
-            .then(res => console.log("Receieved"))
-            .catch(error => console.log(error));
+            .then((res) => console.log("Receieved"))
+            .catch((error) => console.log(error));
 
           const embedClockOutMsg = new Discord.MessageEmbed()
             .setAuthor(
@@ -124,7 +133,7 @@ module.exports = {
             )
             .setColor(0x00ae86)
             .setThumbnail(
-              "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+              message.author.displayAvatarURL({ format: "png", dynamic: true })
             )
             .setTimestamp();
 
@@ -140,7 +149,7 @@ module.exports = {
             .setTitle("Bro you are clocked out already")
             .setColor(0xb60300)
             .setThumbnail(
-              "https://yagami.xyz/content/uploads/2018/11/discord-512-1.png"
+              message.author.displayAvatarURL({ format: "png", dynamic: true })
             )
             .setTimestamp();
 
@@ -148,5 +157,5 @@ module.exports = {
         }
       }
     });
-  }
+  },
 };
