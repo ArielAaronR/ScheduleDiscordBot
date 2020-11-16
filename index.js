@@ -9,18 +9,19 @@ client.commands = new Discord.Collection();
 
 const commandFiles = fs
   .readdirSync("./commands")
-  .filter(file => file.endsWith(".js"));
+  .filter((file) => file.endsWith(".js"));
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
   client.commands.set(command.name, command);
 }
 
-client.on("ready", () => {
-  console.info(`Logged in as ${client.user.tag}!`);
+client.on("ready", async () => {
+  await console.info(`Logged in as ${client.user.tag}!`);
+  await client.user.setActivity(" '[$clist] for commands' ");
 });
 
-client.on("message", msg => {
+client.on("message", (msg) => {
   /*
   Splicing the commands with the prefix
    */

@@ -67,7 +67,7 @@ function sendLatestStatuses(channel, status) {
         .setColor(0x00ae86)
         .setTimestamp();
       channel.client.channels
-        .fetch("737423709048012840")
+        .fetch("695362410713841716")
         .then((channel) => {
           channel
             .bulkDelete(2)
